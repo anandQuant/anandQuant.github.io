@@ -501,7 +501,7 @@ footer{padding:1.5rem var(--pad);border-top:1px solid var(--line2);display:flex;
       <div class="perf-wrap rv">
         <div class="perf-chart-card">
           <a class="perf-widget-link" href="https://www.myfxbook.com/statements/12210710/statement.html" target="_blank" rel="noopener">
-            <img class="perf-widget-img" alt="mean_rev_test live equity widget" width="680" height="280" src="https://widgets.mfbcdn.net/custom-widget?id=12210710&width=680&height=280&bart=0&linet=0&symbol=XAUUSD&magic=-1&title=mean_rev_test&titles=12&bgColor=03040a&gridColor=2a2630&lineColor=e8c88a&barColor=ff8d65&bar1Color=ff8d65&fontColor=f6f4f0&chartbgc=0a0a12&equityColor=ff8a3c"/>
+            <img class="perf-widget-img" alt="mean_rev_test live equity widget" width="680" height="280" src="https://widgets.mfbcdn.net/custom-widget?id=12210710&amp;width=680&amp;height=280&amp;bart=0&amp;linet=0&amp;symbol=XAUUSD&amp;magic=-1&amp;title=mean_rev_test&amp;titles=12&amp;bgColor=03040a&amp;gridColor=2a2630&amp;lineColor=e8c88a&amp;barColor=ff8d65&amp;bar1Color=ff8d65&amp;fontColor=f6f4f0&amp;chartbgc=0a0a12&amp;equityColor=ff8a3c"/>
           </a>
           <div class="perf-chart-foot">
             <span><span class="live-dot"></span>Live · powered by Myfxbook</span>
@@ -510,7 +510,7 @@ footer{padding:1.5rem var(--pad);border-top:1px solid var(--line2);display:flex;
 
         <div class="perf-chart-card">
           <a class="perf-widget-link" href="https://www.myfxbook.com/statements/12210710/statement.html" target="_blank" rel="noopener">
-            <img class="perf-widget-img perf-widget-plain" alt="mean_rev_test stats widget" src="https://widget.mfbcdn.net/widget/widget.png?accountOid=12210710&type=4"/>
+            <img class="perf-widget-img perf-widget-plain" alt="mean_rev_test stats widget" src="https://widget.mfbcdn.net/widget/widget.png?accountOid=12210710&amp;type=4"/>
           </a>
         </div>
 
@@ -2754,6 +2754,40 @@ var LEAD_MAILTO   = 'pandyaanand21@gmail.com';
     g.style.setProperty('--gy', ((e.clientY-r.top)/r.height*100)+'%');
   }, {passive:true});
 })();
+
+/* ══════════════ MYFXBOOK: KEEP WIDGET IMAGES FRESH ══════════════
+   The widget <img> URLs never change, so the browser (and any CDN in
+   between) keeps serving the first copy it cached, even though Myfxbook
+   publishes new data. Adding a changing query value makes each period
+   a new URL, which forces a fresh fetch.
+
+   The value is a 30-minute bucket, not a per-load timestamp: it beats
+   the stale cache without hammering Myfxbook on every visit. If the
+   busted URL ever fails to load, the original URL is restored. */
+(function(){
+  var imgs = [].slice.call(document.querySelectorAll('#performance .perf-widget-img'));
+  if(!imgs.length) return;
+  var PERIOD = 30*60*1000;
+  imgs.forEach(function(im){ im.dataset.base = im.getAttribute('src'); });
+
+  function bust(){
+    var stamp = Math.floor(Date.now()/PERIOD);
+    imgs.forEach(function(im){
+      var base = im.dataset.base;
+      var next = base + (base.indexOf('?') > -1 ? '&' : '?') + 'cb=' + stamp;
+      if(im.getAttribute('src') === next) return;
+      im.onerror = function(){ im.onerror = null; im.src = base; };
+      im.src = next;
+    });
+  }
+  bust();
+  setInterval(bust, PERIOD);
+  /* a tab left open overnight catches up the moment it is looked at */
+  document.addEventListener('visibilitychange', function(){
+    if(!document.hidden) bust();
+  });
+})();
+
 
 var burger = document.getElementById('burger'), menu = document.getElementById('menu');
 /* iOS ignores overflow:hidden on body, so pin it in place and put the
